@@ -1,4 +1,5 @@
 import discord
+import configparser
 import os
 import traceback
 
