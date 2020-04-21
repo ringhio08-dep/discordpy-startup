@@ -1,5 +1,6 @@
 import discord
 import configparser
+import os
 import csv
 import pandas as pd
 import unicodedata
