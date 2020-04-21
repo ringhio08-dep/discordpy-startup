@@ -70,6 +70,8 @@ async def end(ctx, boss: str, time: str):
     end_date = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%Y/%m/%d')
     end_hour = input_time[:2]
     end_min = input_time[2:]
+    await send_channel.send(end_hour)
+    await send_channel.send(end_min)
     cyc = ""
     notes = ""
     cnt = 0
@@ -103,6 +105,8 @@ async def end(ctx, boss: str, time: str):
         if int(end_min) < 5:
             end_min = str(int(end_min) + 55)
             end_hour = str(int(end_hour) - 1)
+        else:
+            end_min = str(int(end_min) - 5)
         if int(end_hour) > 23:
             end_hour = str(int(end_hour) - 24)
         if len(end_hour) == 1:
