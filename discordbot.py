@@ -1,5 +1,10 @@
 import discord
 import configparser
+import csv
+import pandas as pd
+import unicodedata
+import asyncio
+import re
 import os
 import traceback
 
