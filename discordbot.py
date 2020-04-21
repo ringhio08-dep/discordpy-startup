@@ -7,6 +7,7 @@ import asyncio
 import re
 import os
 import traceback
+import pytz
 
 from discord.ext import commands
 from datetime import datetime 
@@ -34,7 +35,6 @@ async def on_ready():
 
     global send_channel
     send_channel = bot.get_channel(CHANNEL_ID)
-    await send_channel.send(':bulb:起動しました :bulb:')
 
 #endコマンド
 @bot.command()
@@ -67,7 +67,7 @@ async def end(ctx, boss: str, time: str):
             sys.exit()
 #次回出現時間の作成
     target_time = ""
-    end_date = datetime.now().strftime('%Y/%m/%d')
+    end_date = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%Y/%m/%d')
     end_hour = input_time[:2]
     end_min = input_time[2:]
     cyc = ""
@@ -221,7 +221,7 @@ async def name(ctx):
 @bot.command()
 async def today(ctx):
 #その日の定常/固定/登録済みの予定を表示
-    weekday = datetime.now().strftime('%a')
+    weekday = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%a')
     df = pd.read_csv("Schedule.csv", encoding = "utf_8")
     df_pickup = df[(df["remark"].isnull()) | (df["remark"] == weekday) | (df["remark"] == "temp")]
     await ctx.send(df_pickup[["time","events"]])
@@ -231,14 +231,14 @@ async def today(ctx):
 async def web(ctx):
 #外部サイト表示
     await ctx.send('https://m-s-y.com/lineage-m/tips/21174/')
-
+    
 bot.remove_command('help')
 
 #helpコマンド
 @bot.command()
 async def help(ctx):
 #ヘルプの表示
-    embed = discord.Embed(title="ボスに関するあれこれをお手伝いするbot", description="入力可能なコマンドは以下となります。", color=0xff0000)
+    embed = discord.Embed(title="いろいろお手伝いするbot(仮)", description="ボスの情報管理や出現リマインダーでお手伝いするBOTです。\nボス狩りのお役に立ててください。\n入力可能なコマンドは以下となります。\n", color=0xff0000)
     embed.add_field(name=COMAND_PREFIX + "name", value="各コマンドで入力可能なボス名の一覧を表示します。\ninputまたはchanged欄のあるボス名が入力可能です。\n投入コマンドと表示結果は90秒後に自動的に削除されます。\n", inline=False)
     embed.add_field(name=COMAND_PREFIX + "end [boss] [hhmm]", value="[boss]：ボス名を入力します。(必須項目)\n[hhmm]：エンド時間を4桁の半角数字で入力します。(必須項目)\n正常に受け付けるとBOTから返信があり、次回出現時間の5分前にリマインダーが設定されます。\n", inline=False)
     embed.add_field(name=COMAND_PREFIX + "set [boss] [hhmm]", value="[boss]：ボス名を入力します。(必須項目)\n[hhmm]：リマインドする時間を4桁の半角数字で入力します。(必須項目)\n正常に受け付けるとBOTから返信があり、入力した時間にリマインダーが設定されます。\n", inline=True)
@@ -258,7 +258,7 @@ async def on_message(message):
             await asyncio.sleep(DEL_TIME)
             await message.delete()
     else:
-        if (message.content.startswith(COMAND_PREFIX + 'info')) or (message.content.startswith(COMAND_PREFIX + 'detail')) or (message.content.startswith(COMAND_PREFIX + 'today')) or (message.content.startswith(COMAND_PREFIX + 'web')) or (message.content.startswith(COMAND_PREFIX + 'help')):
+        if (message.content.startswith(COMAND_PREFIX + 'info')) or (message.content.startswith(COMAND_PREFIX + 'name')) or (message.content.startswith(COMAND_PREFIX + 'detail')) or (message.content.startswith(COMAND_PREFIX + 'today')) or (message.content.startswith(COMAND_PREFIX + 'web')) or (message.content.startswith(COMAND_PREFIX + 'help')):
             await asyncio.sleep(DEL_TIME)
             await message.delete()
 
@@ -266,8 +266,8 @@ async def on_message(message):
 @tasks.loop(seconds=60)
 async def loop():
 #現在情報の取得
-    now = datetime.now().strftime('%H:%M')
-    weekday = datetime.now().strftime('%a')
+    now = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%H:%M')
+    weekday = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%a')
     cnt = 0
     delete_row = 0
 #現在時刻でスケジュールを検索し、予定があれば通知
