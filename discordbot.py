@@ -232,7 +232,7 @@ async def today(ctx):
 @bot.command()
 async def web(ctx):
 #外部サイト表示
-    await ctx.send('https://m-s-y.com/lineage-m/tips/21174/')
+    await ctx.send('https://games.app-liv.jp/archives/407903')
     
 bot.remove_command('help')
 
