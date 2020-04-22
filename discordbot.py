@@ -231,7 +231,20 @@ async def today(ctx):
 async def web(ctx):
 #外部サイト表示
     await ctx.send('https://games.app-liv.jp/archives/407903')
+
+#mainteコマンド
+@bot.command()
+async def mainte(ctx):
+#メンテ用 
+    chk_date = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%Y/%m/%d')
+    chk_hour = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%H')
+    chk_min = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%M')
+    chk_weekday = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%a')
     
+    await ctx.send('JST：' + chk_date + ' ' + chk_hour + ':' + chk_min + '(' + chk_weekday + ')')
+    await ctx.send('投稿対象チャンネル：' + str(send_channel))
+
+#既存のhelpコマンドを削除
 bot.remove_command('help')
 
 #helpコマンド
