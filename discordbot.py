@@ -277,6 +277,8 @@ async def loop():
         reader = csv.reader(read_csv)
         header = next(reader)
         for row in reader:
+            global send_channel
+            send_channel = bot.get_channel(CHANNEL_ID)
             cnt = cnt + 1
             event_msg = '【' + row[1] + '】の' + row[3] + '5分前をお知らせします :incoming_envelope:'
             if (row[0] == now) and (row[2] == ''):
