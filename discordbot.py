@@ -282,7 +282,8 @@ async def loop():
     now = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%H:%M')
     weekday = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%a')
     chk_hour = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%H')
-    chk_min = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%M')\
+    chk_min = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%M')
+
     cnt = 0
     delete_row = 0
 #現在時刻でスケジュールを検索し、予定があれば通知
