@@ -294,33 +294,55 @@ async def loop():
             global send_channel
             send_channel = bot.get_channel(CHANNEL_ID)
             cnt = cnt + 1
-            if int(chk_min) < 54:
-                chk_min = str(int(chk_min) + 5)
-            else:
-                chk_min = str(int(chk_min) - 55)
-                chk_hour = str(int(chk_hour) + 1)
-            if len(chk_min) == 1:
-                chk_min = '0' + chk_min
-            if len(chk_hour) == 1:
-                chk_hour = '0' + chk_hour
-            pop_time = chk_hour + ':' + chk_min
-            event_msg = '【' + row[1] + '】の' + row[3] + '5分前をお知らせします :incoming_envelope:\n(:clock: ：' + pop_time
+            event_msg = '【' + row[1] + '】の' + row[3] + '5分前をお知らせします :incoming_envelope:\n(出現時間：' 
             if (row[0] == now) and (row[2] == ''):
+                if int(chk_min) < 54:
+                    chk_min = str(int(chk_min) + 5)
+                else:
+                    chk_min = str(int(chk_min) - 55)
+                    chk_hour = str(int(chk_hour) + 1)
+                if len(chk_min) == 1:
+                    chk_min = '0' + chk_min
+                if len(chk_hour) == 1:
+                    chk_hour = '0' + chk_hour
+                pop_time = chk_hour + ':' + chk_min
+                event_msg = event_msg + pop_time
                 if not row[4] == '':
-                    event_msg = event_msg + '\n' + row[4]
-                await send_channel.send(event_msg)
-            elif (row[0] == now) and (row[2] == weekday):
-                if not row[4] == '':
-                    event_msg = event_msg  + ' , ' + row[4]
+                    event_msg = event_msg + ' , ' + row[4]
                 await send_channel.send(event_msg + ')')
-            elif (row[0] == now) and (row[2] == 'temp'):
+            elif (row[0] == now) and (row[2] == weekday):
+                if int(chk_min) < 54:
+                    chk_min = str(int(chk_min) + 5)
+                else:
+                    chk_min = str(int(chk_min) - 55)
+                    chk_hour = str(int(chk_hour) + 1)
+                if len(chk_min) == 1:
+                    chk_min = '0' + chk_min
+                if len(chk_hour) == 1:
+                    chk_hour = '0' + chk_hour
+                pop_time = chk_hour + ':' + chk_min
+                event_msg = event_msg + pop_time
                 if not row[4] == '':
                     event_msg = event_msg +  ' , ' + row[4]
-                await send_channel.send(event_msg+ ')')
+                await send_channel.send(event_msg + ')')
+            elif (row[0] == now) and (row[2] == 'temp'):
+                if int(chk_min) < 54:
+                    chk_min = str(int(chk_min) + 5)
+                else:
+                    chk_min = str(int(chk_min) - 55)
+                    chk_hour = str(int(chk_hour) + 1)
+                if len(chk_min) == 1:
+                    chk_min = '0' + chk_min
+                if len(chk_hour) == 1:
+                    chk_hour = '0' + chk_hour
+                pop_time = chk_hour + ':' + chk_min
+                event_msg = event_msg + pop_time
+                if not row[4] == '':
+                    event_msg = event_msg +  ' , ' + row[4]
+                await send_channel.send(event_msg + ')')
                 delete_row = cnt - 1
                 df = pd.read_csv('Schedule.csv', encoding = "utf_8")
                 df = df.drop(delete_row)
                 df.to_csv('Schedule.csv', index=False)
 loop.start()
-
 bot.run(token)
