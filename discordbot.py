@@ -90,13 +90,11 @@ async def end(ctx, boss: str, time: str):
             cnt = cnt + 1
             if row[0] == target_boss:
                 update_row = cnt - 1
-                notes = '(:map: : ' + row[1]
+                notes = ':map: : ' + row[1]
                 if len(row[2]) == 1:
                     cyc = row[2]
                 if row[3] == "o":
-                    notes = notes + ' , ランダム出現だよ :cyclone:)'
-                else:
-                    notes = notes + ')'
+                    notes = notes + ' , ランダム出現だよ :cyclone:'
     if cyc:
         end_hour = str(int(end_hour) + int(cyc))
         end_min = str(int(end_min))
@@ -114,13 +112,13 @@ async def end(ctx, boss: str, time: str):
         else:
             target_time = end_hour + ':' + end_min
         msg = msg + '\n次回出現時間の5分前 <' + target_time + '> にリマインダーをセットしました :alarm_clock:\n'
-    msg = msg + notes
+    msg = msg + '(' + notes + ')'
 #更新処理
     if not target_time == '':
         with open('Schedule.csv', 'a', newline='', encoding = "utf_8") as write_csv:
             writer = csv.writer(write_csv)
             writer.writerow([target_time, target_boss,'temp','出現',notes])
-    if update_row > 0:
+    if update_row > -1:
         df = pd.read_csv('BossList.csv', encoding = "utf_8")
         df.loc[update_row , 'last time'] = last_time
         df.to_csv('BossList.csv', index=False) 
@@ -166,16 +164,16 @@ async def set(ctx, boss: str, time: str):
         header = next(reader)
         for row in reader:
             if row[0] == target_boss:
-                notes = '(:map: : ' + row[1]
+                notes = ':map: : ' + row[1]
                 if row[3] == "o":
-                    notes = notes + ' , ランダム出現だよ :cyclone:)'
+                    notes = notes + ' , ランダム出現だよ :cyclone:'
                 else:
                     notes = notes + ')'
 
     target_time = end_hour + ':' + end_min
 
     msg = msg + '\n <' + target_time + '> にリマインダーをセットしました :alarm_clock:\n'
-    msg = msg + notes
+    msg = msg + '(' + notes + ')'
 #更新処理
     with open('Schedule.csv', 'a', newline='', encoding = "utf_8") as write_csv:
         writer = csv.writer(write_csv)
@@ -270,6 +268,8 @@ async def loop():
 #現在情報の取得
     now = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%H:%M')
     weekday = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%a')
+    chk_hour = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%H')
+    chk_min = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%M')\
     cnt = 0
     delete_row = 0
 #現在時刻でスケジュールを検索し、予定があれば通知
@@ -280,19 +280,29 @@ async def loop():
             global send_channel
             send_channel = bot.get_channel(CHANNEL_ID)
             cnt = cnt + 1
-            event_msg = '【' + row[1] + '】の' + row[3] + '5分前をお知らせします :incoming_envelope:'
+            if int(chk_min) < 54:
+                chk_min = str(int(chk_min) + 5)
+            else:
+                chk_min = str(int(chk_min) - 55)
+                chk_hour = str(int(chk_hour) + 1)
+            if len(chk_min) == 1:
+                chk_min = '0' + chk_min
+            if len(chk_hour) == 1:
+                chk_hour = '0' + chk_hour
+            pop_time = chk_hour + ':' + chk_min
+            event_msg = '【' + row[1] + '】の' + row[3] + '5分前をお知らせします :incoming_envelope:\n(:clock: ：' + pop_time
             if (row[0] == now) and (row[2] == ''):
                 if not row[4] == '':
                     event_msg = event_msg + '\n' + row[4]
                 await send_channel.send(event_msg)
             elif (row[0] == now) and (row[2] == weekday):
                 if not row[4] == '':
-                    event_msg = event_msg + '\n' + row[4]
-                await send_channel.send(event_msg)
+                    event_msg = event_msg  + ' , ' + row[4]
+                await send_channel.send(event_msg + ')')
             elif (row[0] == now) and (row[2] == 'temp'):
                 if not row[4] == '':
-                    event_msg = event_msg + '\n' + row[4]
-                await send_channel.send(event_msg)
+                    event_msg = event_msg +  ' , ' + row[4]
+                await send_channel.send(event_msg+ ')')
                 delete_row = cnt - 1
                 df = pd.read_csv('Schedule.csv', encoding = "utf_8")
                 df = df.drop(delete_row)
