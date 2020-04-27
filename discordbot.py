@@ -14,6 +14,18 @@ from datetime import datetime
 from discord.ext import tasks
 from module import sub_module
 
+#********** 設定情報を格納 **********
+INIFILE = configparser.ConfigParser()
+INIFILE.read('config.ini', 'UTF-8')
+CHANNEL_ID = int(INIFILE.get('Discord', 'CHANNEL'))
+COMAND_PREFIX = INIFILE.get('Discord', 'COMAND_PREFIX')
+DEL_TIME = int(INIFILE.get('Discord', 'DEL_TIME'))
+
+token = os.environ['DISCORD_BOT_TOKEN']
+bot = commands.Bot(command_prefix= COMAND_PREFIX)
+send_channel = ""
+notes = ""
+
 #********** 起動時イベント **********
 @bot.event
 async def on_ready():
