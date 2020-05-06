@@ -68,6 +68,7 @@ async def end(ctx, boss: str, time: str):
     notes = ""
     cnt = 0
     update_row = 0
+    target_time = ''
 
     end_date = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%Y/%m/%d')
     end_hour = time[:2]
@@ -94,15 +95,16 @@ async def end(ctx, boss: str, time: str):
         if len(end_hour) == 1:
             end_hour = '0' + end_hour
         target_time = end_hour + ':' + end_min
-        msg = msg + '\n次回出現時間の5分前 <' + sub_module.MakeTime(target_time) + '> にリマインダーをセットしました :alarm_clock:\n'
+        msg = msg + '\n次回出現時間の5分前 <' + sub_module.MakeTime(target_time) + '> にリマインダーをセットしました :alarm_clock:'
 
-    msg = msg + '(' + notes + ')'
+    msg = msg + '\n(' + notes + ')'
 
     #更新処理
     if not target_time == '':
         with open('./data/Schedule.csv', 'a', newline='', encoding = "utf_8") as write_csv:
             writer = csv.writer(write_csv)
             writer.writerow([target_time, target_boss,'temp','出現',notes])
+        write_csv.close()
 
     if update_row > -1:
         df = pd.read_csv('./data/BossList.csv', encoding = "utf_8")
@@ -153,15 +155,24 @@ async def set(ctx, boss: str, time: str):
                 else:
                     notes = notes + ')'
 
+    set_min = str(int(set_min) +5)
+    if int(set_min) > 60:
+        set_min = str(int(set_min) - 60)
+        set_hour = str(int(set_hour) + 1)
+    if len(set_min) == 1:
+        set_min = '0' + set_min
+    if len(set_hour) == 1:
+        set_hour = '0' + set_hour
     target_time = set_hour + ':' + set_min
 
-    msg = msg + '\n <' + target_time + '> にリマインダーをセットしました :alarm_clock:\n'
+    msg = msg + '\n <' + sub_module.MakeTime(target_time) + '> にリマインダーをセットしました :alarm_clock:\n'
     msg = msg + '(' + notes + ')'
 
     #更新処理
     with open('./data/Schedule.csv', 'a', newline='', encoding = "utf_8") as write_csv:
         writer = csv.writer(write_csv)
         writer.writerow([target_time, target_boss,'temp','出現',notes])
+    write_csv.close()
 
     #リマインダー設定の通知
     await ctx.send(msg)
@@ -212,6 +223,65 @@ async def web(ctx):
     #外部サイト表示
     await ctx.send('https://games.app-liv.jp/archives/407903')
 
+#********** deleteコマンド **********
+@bot.command()
+async def delete(ctx, time: str):
+    #入力コマンドの正常性判定
+    if not int(len(time)) == 4:
+        await ctx.send('入力時間が4桁ではありません :sob:\n再入力してください :pray:')
+        sys.exit()
+    for c in time:
+        if (unicodedata.east_asian_width(str(c)) == 'F') or (unicodedata.east_asian_width(str(c)) == 'W'):
+            await ctx.send('入力時間に全角文字が含まれています :sob:\n再入力してください :pray:')
+            sys.exit()
+
+    #入力情報の格納
+    chk_time = time[:2] + ':' + time[2:]
+    global send_channel
+    send_channel = bot.get_channel(CHANNEL_ID)
+    cnt = 0
+    delete_row = 0
+
+    #入力時刻でスケジュールを検索し、一致すれば削除
+    with open("./data/Schedule.csv", "r" , encoding = "utf_8") as read_csv:
+        reader = csv.reader(read_csv)
+        header = next(reader)
+        for row in reader:
+            cnt = cnt + 1
+            if (chk_time == row[0]) and (row[2] == 'temp'):
+                event_msg = '【' + row[1] + '】(出現時間：' + row[0] + ') の情報を削除しました :wastebasket:'
+                delete_row = cnt - 1
+                df = pd.read_csv('./data/Schedule.csv', encoding = "utf_8")
+                df = df.drop(delete_row)
+                df.to_csv('./data/Schedule.csv', index=False)
+                await send_channel.send(event_msg)
+    if delete_row == 0:
+        event_msg = '入力された時間では削除できる予定がありませんでした。'
+        await send_channel.send(event_msg)
+
+#********** addコマンド **********
+@bot.command()
+async def add(ctx, input: str, changed: str):
+
+    #変換後のボス名の正常性確認
+    search_name = ''
+    with open("./data/ChangeName.csv", "r" , encoding = "utf_8") as read_csv:
+        reader = csv.reader(read_csv)
+        header = next(reader)
+        for row in reader:
+            if row[1] == changed:
+                search_name = row[1]
+
+    if not search_name:
+        await ctx.send('入力された変換後のボス名が正しくありません :sob:\n再入力してください :pray:')
+        sys.exit()
+    else:
+        with open('./data/ChangeName.csv', 'a', newline='', encoding = "utf_8") as write_csv:
+            writer = csv.writer(write_csv)
+            writer.writerow([input, changed])
+        write_csv.close()
+        await ctx.send('【' + input + '】の変換情報を登録しました :ok_hand:')
+
 #********** mainteコマンド **********
 @bot.command()
 async def mainte(ctx, type: str):
@@ -225,8 +295,6 @@ async def mainte(ctx, type: str):
         await ctx.send('JST：' + chk_date + ' ' + chk_hour + ':' + chk_min + '(' + chk_weekday + ')')
     elif type == 'ch':
         await ctx.send('投稿対象チャンネル：' + str(send_channel))
-    elif type == 'save':
-        await ctx.send(type)
 
 #********** helpコマンド **********
     #既存のhelpコマンドを削除
@@ -242,6 +310,8 @@ async def help(ctx):
     embed.add_field(name=COMAND_PREFIX + "info", value="ボス一覧と前回のエンド時間を表示します。\n投入コマンドと表示結果は90秒後に自動的に削除されます。\n", inline=False)
     embed.add_field(name=COMAND_PREFIX + "detail [boss]", value="[boss]：ボス名を入力します。(必須項目)\n入力したボスの出現場所や周期などを含む詳細情報を表示します。\n投入コマンドと表示結果は90秒後に自動的に削除されます。\n", inline=False)
     embed.add_field(name=COMAND_PREFIX + "today", value="その日に予定されているボス出現時間やイベントの一覧を表示します。\n投入コマンドと表示結果は90秒後に自動的に削除されます。\n", inline=False)
+    embed.add_field(name=COMAND_PREFIX + "delete [hhmm]", value="[hhmm]：削除する予定の時間を4桁の半角数字で入力します。(必須項目)\n正常に受け付けるとBOTから返信があり、入力した時間の予定が削除されます。\n", inline=False)
+    embed.add_field(name=COMAND_PREFIX + "add [input] [changed]", value="[input]：新たに使用するボス名を入力します。(必須項目)\n[changed]：ボス一覧に登録されているボス名を入力します。(必須項目)\n正常に受け付けるとBOTから返信があり、ボス名変換テーブルに登録されます。\n", inline=False)
     embed.add_field(name=COMAND_PREFIX + "web", value="フィールドボスに関する外部サイトのURLを表示します。\n投入コマンドと表示結果は90秒後に自動的に削除されます。\n", inline=False)
     embed.add_field(name=COMAND_PREFIX + "help", value="入力可能なコマンドと使い方を表示します。\n投入コマンドと表示結果は90秒後に自動的に削除されます。\n", inline=False)
     await ctx.send(embed=embed)
