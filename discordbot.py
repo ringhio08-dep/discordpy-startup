@@ -366,6 +366,7 @@ async def loop():
                     df = df.drop(delete_row)
                     df.to_csv('./data/Schedule.csv', index=False)
                     await send_channel.send(event_msg)
+    read_csv.close()
 
 loop.start()
 
