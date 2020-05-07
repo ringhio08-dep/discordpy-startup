@@ -1,24 +1,28 @@
 # ボスに関するあれこれをお手伝いするbot 
-
 エンド時間を登録することで次回pop時間をリマインドします。
  
-# ファイル構成
- ┳main.py
+## ファイル構成
+ ┬ main.py
 
- ┣「data」┳BossList.csv 
+ ├ 「data」
  
-            ┣ChangeName.csv 
-          
-            ┗Schedule.csv 
- ┣「module」━ sub_module.py 
+   ├ BossList.csv 
+   
+   ├ ChangeName.csv
  
- ┣config.ini 
+   └ Schedule.csv 
+   
+ ├ 「module」
  
- ┣Procfile 
+   └ sub_module.py 
  
- ┣requirements.txt 
+ ├ config.ini 
  
- ┗runtime.txt
+ ├ Procfile 
+ 
+ ├ requirements.txt 
+ 
+ └ runtime.txt
  
 # Features
  
