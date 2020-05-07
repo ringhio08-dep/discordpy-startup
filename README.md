@@ -1,5 +1,5 @@
-# discordpy-startup
-discord.py on Heroku
+# ボスに関するあれこれをお手伝いするbot
+エンド時間を登録することで次回pop時間を通知します。
 
 [ファイル構成]
 
