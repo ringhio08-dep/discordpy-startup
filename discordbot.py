@@ -83,17 +83,25 @@ async def end(ctx, boss: str, time: str):
             if row[0] == target_boss:
                 update_row = cnt - 1
                 notes = ':map: : ' + row[1]
-                if len(row[2]) == 1:
+                if len(row[2]) == 5:
                     cyc = row[2]
+                    cyc_hour = cyc[:2]
+                    cyc_min = cyc[3:]
                 if row[3] == "o":
                     notes = notes + ' , ランダム出現だよ :cyclone:'
 
     if cyc:
-        end_hour = str(int(end_hour) + int(cyc))
+        end_hour = str(int(end_hour) + int(cyc_hour))
+        end_min = str(int(end_min) + int(cyc_min))
+        if int(end_min) > 59:
+            end_hour = str(int(end_hour) + 1)
+            end_min = str(int(end_min) - 60)
         if int(end_hour) > 23:
             end_hour = str(int(end_hour) - 24)
         if len(end_hour) == 1:
             end_hour = '0' + end_hour
+        if len(end_min) == 1:
+            end_min = '0' + end_min
         target_time = end_hour + ':' + end_min
         msg = msg + '\n次回出現時間の5分前 <' + sub_module.MakeTime(target_time) + '> にリマインダーをセットしました :alarm_clock:'
 
