@@ -8,6 +8,7 @@ import re
 import os
 import traceback
 import pytz
+import time
 
 from discord.ext import commands
 from datetime import datetime 
@@ -25,6 +26,9 @@ token = os.environ['DISCORD_BOT_TOKEN']
 bot = commands.Bot(command_prefix= COMAND_PREFIX)
 send_channel = ""
 notes = ""
+boot_time = ""
+check_time = ""
+check_sec = ""
 
 #********** 起動時イベント **********
 @bot.event
@@ -37,6 +41,10 @@ async def on_ready():
     #投稿チャンネル名取得
     global send_channel
     send_channel = bot.get_channel(CHANNEL_ID)
+    
+    #起動時間取得
+    global boot_time
+    boot_time = datetime.now(pytz.timezone('Asia/Tokyo'))
 
 #********** endコマンド **********
 @bot.command()
@@ -292,17 +300,17 @@ async def add(ctx, input: str, changed: str):
 
 #********** mainteコマンド **********
 @bot.command()
-async def mainte(ctx, type: str):
-    #JST、チャネル名の表示
-    if type == 'time':
-        chk_date = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%Y/%m/%d')
-        chk_hour = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%H')
-        chk_min = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%M')
-        chk_weekday = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%a')
+async def mainte(ctx):    
+    diff_sec = time.time() - check_sec
+    if diff_sec < 60:
+       stat = ':bulb: 正常 :bulb:'
+    else:
+        stat = ':warning: 停止中 :warning:'
 
-        await ctx.send('JST：' + chk_date + ' ' + chk_hour + ':' + chk_min + '(' + chk_weekday + ')')
-    elif type == 'ch':
-        await ctx.send('投稿対象チャンネル：' + str(send_channel))
+    await ctx.send('状態          ：' + stat)
+    await ctx.send('起動日時      ：' + str(boot_time))
+    await ctx.send('起動時間      ：' + str(datetime.now(pytz.timezone('Asia/Tokyo')) - boot_time))
+    await ctx.send('リマインダ確認：' + str(check_time))
 
 #********** helpコマンド **********
     #既存のhelpコマンドを削除
@@ -348,10 +356,16 @@ async def loop():
     chk_hour = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%H')
     chk_min = datetime.now(pytz.timezone('Asia/Tokyo')).strftime('%M')
 
-    global send_channel
-    send_channel = bot.get_channel(CHANNEL_ID)
+    #global send_channel
+    #send_channel = bot.get_channel(CHANNEL_ID)
     cnt = 0
     delete_row = 0
+
+    #リマインダー確認時間取得
+    global check_time
+    check_time = datetime.now(pytz.timezone('Asia/Tokyo'))
+    global check_sec
+    check_sec = time.time()
 
     #現在時刻でスケジュールを検索し、予定があれば通知
     with open("./data/Schedule.csv", "r" , encoding = "utf_8") as read_csv:
